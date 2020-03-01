@@ -2,6 +2,38 @@
 #<3 IW
 import math
 
+#multiply m1 by m2, modifying m2 to be the product
+#m1 * m2 -> m2
+def matrix_mult( m1, m2 ):
+
+    point = 0
+    for row in m2:
+        #get a copy of the next point
+        tmp = row[:]
+
+        for r in range(4):
+            m2[point][r] = (m1[0][r] * tmp[0] +
+                            m1[1][r] * tmp[1] +
+                            m1[2][r] * tmp[2] +
+                            m1[3][r] * tmp[3])
+        point+= 1
+
+def ident( matrix ):
+    for r in range( len( matrix[0] ) ):
+        for c in range( len(matrix) ):
+            if r == c:
+                matrix[c][r] = 1
+            else:
+                matrix[c][r] = 0
+
+def new_matrix(rows = 4, cols = 4):
+    m = []
+    for c in range( cols ):
+        m.append( [] )
+        for r in range( rows ):
+            m[c].append( 0 )
+    return m
+
 class picture:
     def __init__(self, n, w, h):
         self.name = n
@@ -9,6 +41,7 @@ class picture:
         self.pixels = [[[0, 0, 0] for i in range(self.width)] for j in range(self.height)]
         self.four_identity = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
         self.edge_matrix = [[], [], [], []]
+        self.transformation_matrix = ident(new_matrix())
 
     def plot(self, x, y, color):
         if x < 0 or y < 0 or x >= self.width or y >= self.height:#out of bounds
@@ -116,14 +149,29 @@ class picture:
         while (iterator < (len(self.edge_matrix[0]) - 1)): # I was wrong, the original error was just you needed < instead of != to account for the overshoot. IW
             self.draw_line(self.edge_matrix[0][iterator], self.edge_matrix[1][iterator], self.edge_matrix[0][iterator + 1], self.edge_matrix[1][iterator + 1], color)
             iterator = iterator + 2
+#NEW METHODS NOT INCLUDING SCALING CAN BE FOUND HERE
+    def make_translate(self, x, y, z):
+        translation_factor = [[1, 0,  0, a], [0, 1, 0, b], [0, 0, 1, c], [0, 0, 0, 1]]
+        matrix_mult(translation_factor, self.transformation_matrix)
 
-def ident( matrix ):
-    for r in range( len( matrix[0] ) ):
-        for c in range( len(matrix) ):
-            if r == c:
-                matrix[c][r] = 1
-            else:
-                matrix[c][r] = 0
+    def make_scale(self, x, y, z):
+        scaling_factor = [[a, 0,  0, 0], [0, b, 0, 0], [0, 0, c, 0], [0, 0, 0, 1]]
+        matrix_mult(scaling_factor, self.transformation_matrix)
+
+    def make_rotX(self, deg_theta):
+        theta = deg_theta * (math.pi/180)
+        rotation_factor = [[1, 0, 0, 0], [0, math.cos(theta), (math.sin(theta) * -1), 0], [0, math.sin(theta), math.cos(theta), 0], [0, 0, 0, 1]]
+        matrix_mult(rotation_factor, self.transformation_matrix)
+
+    def make_rotY(self, deg_theta):
+        theta = deg_theta * (math.pi/180)
+        rotation_factor = [[math.cos(theta), 0, math.sin(theta), 0], [0, 0, 0, 0], [(math.sin(theta) * -1), 0, math.cos(theta), 0], [0, 0, 0, 1]]
+        matrix_mult(rotation_factor, self.transformation_matrix)
+
+    def make_rotZ(self, deg_theta):
+        theta = deg_theta * (math.pi/180)
+        rotation_factor = [[math.cos(theta), (math.sin(theta) * -1), 0, 0], [math.sin(theta), math.cos(theta), 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+        matrix_mult(rotation_factor, self.transformation_matrix)
 
 # def coolify_pic_ascii(g):
 #     a = 1
@@ -188,45 +236,6 @@ def multiply_matrices(x,y):
     display_matrix(result_matrix)
     y = result_matrix #Alters the second matrix IW
     return result_matrix
-
-#multiply m1 by m2, modifying m2 to be the product
-#m1 * m2 -> m2
-def matrix_mult( m1, m2 ):
-
-    point = 0
-    for row in m2:
-        #get a copy of the next point
-        tmp = row[:]
-
-        for r in range(4):
-            m2[point][r] = (m1[0][r] * tmp[0] +
-                            m1[1][r] * tmp[1] +
-                            m1[2][r] * tmp[2] +
-                            m1[3][r] * tmp[3])
-        point+= 1
-
-def new_matrix(rows = 4, cols = 4):
-    m = []
-    for c in range( cols ):
-        m.append( [] )
-        for r in range( rows ):
-            m[c].append( 0 )
-    return m
-
-def make_translate( x, y, z ):
-    pass
-
-def make_scale( x, y, z ):
-    pass
-
-def make_rotX( theta ):
-    pass
-
-def make_rotY( theta ):
-    pass
-
-def make_rotZ( theta ):
-    pass
 
 """
 Goes through the file named filename and performs all of the actions listed in that file.
